@@ -10,5 +10,5 @@
 
 ## 개발환경
 - Android Studio
-- Java 17
+- Java 21
 - Firebase Console 
