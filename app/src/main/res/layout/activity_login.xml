@@ -2,46 +2,68 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FFFFFF"
     android:orientation="vertical"
-    android:padding="32dp"
-    android:gravity="center"
-    android:background="#FFFFFF">
+    android:paddingStart="32dp"
+    android:paddingTop="32dp"
+    android:paddingEnd="32dp"
+    android:paddingBottom="32dp"
+    android:weightSum="3">
 
-    <TextView
+    <FrameLayout
+        android:id="@+id/header_section"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TAKE-TAC 로그인"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:paddingBottom="24dp" />
+        android:layout_height="0dp"
+        android:layout_weight="1.5"
+        android:layout_marginBottom="8dp"
+        android:background="#FFFFFF">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="246dp"
+            android:contentDescription="헤더 이미지"
+            android:scaleType="fitCenter"
+            android:src="@drawable/gachonmas" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:padding="16dp"
+            android:text="TAKE-TAC 로그인"
+            android:textColor="#b8d6f4"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:translationY="120dp" />
+    </FrameLayout>
 
     <EditText
         android:id="@+id/emailInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="이메일 입력" />
+        android:hint="이메일 입력"/>
 
     <EditText
         android:id="@+id/passwordInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:hint="비밀번호 입력"
-        android:inputType="textPassword"
-        android:layout_marginTop="16dp" />
+        android:inputType="textPassword" />
 
     <Button
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="로그인"
         android:layout_marginTop="24dp"
-        android:backgroundTint="#014F9e"/>
+        android:backgroundTint="#014F9e"
+        android:text="로그인" />
 
     <Button
         android:id="@+id/signupButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="회원가입"
         android:layout_marginTop="8dp"
-        android:backgroundTint="#014F9e"/>
+        android:backgroundTint="#014F9e"
+        android:text="회원가입" />
 </LinearLayout>
