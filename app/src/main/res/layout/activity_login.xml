@@ -2,40 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
+    android:background="@drawable/moohan"
     android:orientation="vertical"
     android:paddingStart="32dp"
-    android:paddingTop="32dp"
+    android:paddingTop="100dp"
     android:paddingEnd="32dp"
     android:paddingBottom="32dp"
-    android:weightSum="3">
+    >
 
-    <FrameLayout
-        android:id="@+id/header_section"
+    <TextView
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:layout_weight="1.5"
-        android:layout_marginBottom="8dp"
-        android:background="#FFFFFF">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="246dp"
-            android:contentDescription="헤더 이미지"
-            android:scaleType="fitCenter"
-            android:src="@drawable/gachonmas" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:padding="16dp"
-            android:text="TAKE-TAC 로그인"
-            android:textColor="#b8d6f4"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:translationY="120dp" />
-    </FrameLayout>
+        android:layout_height="wrap_content"
+        android:text="TAKE_TAC 로그인"
+        android:textSize="24sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"/>
 
     <EditText
         android:id="@+id/emailInput"
