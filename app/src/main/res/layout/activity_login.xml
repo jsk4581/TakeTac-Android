@@ -2,50 +2,54 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/moohan"
     android:orientation="vertical"
-    android:paddingStart="32dp"
-    android:paddingTop="100dp"
-    android:paddingEnd="32dp"
-    android:paddingBottom="32dp"
-    >
+    android:padding="32dp"
+    android:gravity="center"
+    android:background="#FFFFFF">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TAKE_TAC 로그인"
+        android:text="TAKE-TAC 로그인"
         android:textSize="24sp"
-        android:textColor="#000000"
         android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
+        android:paddingBottom="24dp" />
 
     <EditText
         android:id="@+id/emailInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="이메일 입력"/>
+        android:hint="이메일 입력" />
 
     <EditText
         android:id="@+id/passwordInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:hint="비밀번호 입력"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:layout_marginTop="16dp" />
 
     <Button
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:backgroundTint="#014F9e"
-        android:text="로그인" />
+        android:text="로그인"
+        android:layout_marginTop="24dp" />
 
     <Button
         android:id="@+id/signupButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:backgroundTint="#014F9e"
-        android:text="회원가입" />
+        android:text="회원가입"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/loginErrorText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FF0000"
+        android:text=""
+        android:visibility="visible"
+        android:layout_marginTop="8dp" />
+
 </LinearLayout>
