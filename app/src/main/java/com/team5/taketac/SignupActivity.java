@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -51,14 +52,27 @@ public class SignupActivity extends AppCompatActivity {
                 return;
             }
 
+            errorText.setText("회원가입 진행 중...");
+
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            Toast.makeText(SignupActivity.this, "회원가입 성공! 로그인해주세요", Toast.LENGTH_SHORT).show();
+                            FirebaseUser user = mAuth.getCurrentUser();
 
-                            Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
-                            startActivity(intent);
-                            finish();
+                            if (user != null) {
+                                user.sendEmailVerification()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Toast.makeText(this,
+                                                    "인증 메일을 보냈습니다. 인증 후 로그인 해주세요.",
+                                                    Toast.LENGTH_LONG).show();
+                                            mAuth.signOut(); // 로그인 상태 초기화
+                                            startActivity(new Intent(SignupActivity.this, LoginActivity.class));
+                                            finish();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            errorText.setText("인증 메일 전송 실패: " + e.getMessage());
+                                        });
+                            }
                         } else {
                             errorText.setText("회원가입 실패: " + task.getException().getMessage());
                         }

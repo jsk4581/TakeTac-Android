@@ -12,6 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -58,11 +62,28 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
-                            Toast.makeText(LoginActivity.this, "로그인 성공!", Toast.LENGTH_SHORT).show();
 
-                            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                            startActivity(intent);
-                            finish();
+                            if (user != null && user.isEmailVerified()) {
+                                // 인증 완료된 경우에만 Firestore에 최초 회원 정보 저장
+                                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                db.collection("users").document(user.getUid()).get()
+                                        .addOnSuccessListener(document -> {
+                                            if (!document.exists()) {
+                                                Map<String, Object> userData = new HashMap<>();
+                                                userData.put("email", user.getEmail());
+                                                userData.put("createdAt", System.currentTimeMillis());
+                                                db.collection("users").document(user.getUid()).set(userData);
+                                            }
+                                        });
+
+                                Toast.makeText(this, "로그인 성공!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(this, HomeActivity.class));
+                                finish();
+
+                            } else {
+                                errorText.setText("이메일 인증 후 로그인할 수 있습니다.");
+                                mAuth.signOut();
+                            }
                         } else {
                             errorText.setText("로그인 실패: " + task.getException().getMessage());
                         }
