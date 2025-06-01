@@ -21,6 +21,8 @@
         <activity android:name=".HomeActivity" />
         <activity android:name=".SignupActivity" />
 
+        <activity android:name=".TimetableActivity" />
+
         <activity
             android:name=".LoginActivity"
             android:exported="true">

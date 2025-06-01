@@ -41,6 +41,8 @@ dependencies {
 
     implementation("com.google.firebase:firebase-auth:22.3.1") // Firebase Auth 직접 명시
     implementation("com.google.firebase:firebase-firestore:24.10.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2") // 최신 버전 확인
+    implementation("androidx.cardview:cardview:1.0.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
