@@ -41,7 +41,15 @@ dependencies {
 
     implementation("com.google.firebase:firebase-auth:22.3.1") // Firebase Auth 직접 명시
     implementation("com.google.firebase:firebase-firestore:24.10.0")
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+    implementation ("com.kakao.maps.open:android:2.12.8")
+    implementation ("com.kakao.sdk:v2-user:2.18.0")        // ✅ 로그인 포함 (Utility 있음)
+    implementation ("com.kakao.sdk:v2-common:2.18.0")
+    // 2. 카카오 길찾기 API 통신을 위한 Retrofit (HTTP 클라이언트)
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // 3. Retrofit에서 JSON 응답을 Java 객체로 변환하기 위한 Gson 컨버터
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // 4. 사용자의 현재 위치를 가져오기 위한 Google Play Services Location 라이브러리
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
 }
