@@ -14,4 +14,11 @@
         android:paddingBottom="24dp"/>
 
     <!-- 이 아래에 출발/도착지 입력 및 버튼 구성 예정 -->
+    <Button
+        android:id="@+id/btnGoToMatching"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="공개 매칭 테스트"
+        android:layout_marginTop="12dp"/>
+
 </LinearLayout>

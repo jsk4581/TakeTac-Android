@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="24dp"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tvPartyTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="제목"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvPartyLocation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="장소"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/btnJoinParty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="참여하기" />
+
+    <Button
+        android:id="@+id/btnDeleteParty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="삭제하기"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        android:backgroundTint="@android:color/holo_red_light" />
+</LinearLayout>

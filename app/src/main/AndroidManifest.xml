@@ -22,7 +22,11 @@
         <activity android:name=".SignupActivity" />
 
         <activity
-            android:name=".LoginActivity"
+            android:name=".LoginActivity">
+        </activity>
+
+        <activity android:name=".PublicMatchingActivity"
+            android:label="공개 매칭"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -30,6 +34,9 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".CreatePublicPartyActivity"
+            android:label="공개 파티 만들기" />
     </application>
 
 </manifest>
