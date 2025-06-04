@@ -4,11 +4,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -19,35 +21,35 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.*;
 
-public class TimetableActivity extends AppCompatActivity {
+public class TimetableFragment extends Fragment {
 
-    private static final String TAG = "TimetableActivity";
+    private static final String TAG = "TimetableFragment";
     private RecyclerView recyclerView;
     private FirebaseFirestore db;
     private String uid;
     private TimetableAdapter adapter;
 
+    @Nullable
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_timetable);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_timetable, container, false);
+        recyclerView = view.findViewById(R.id.recyclerViewTimetable);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 6));
 
-        recyclerView = findViewById(R.id.recyclerViewTimetable);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 6));
+        Button addButton = view.findViewById(R.id.buttonAddSchedule);
+        addButton.setOnClickListener(v -> showAddScheduleDialog());
 
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             Log.e(TAG, "사용자 인증 실패");
-            return;
+            return view;
         }
 
         uid = user.getEmail();
         db = FirebaseFirestore.getInstance();
-
         loadDataFromFirestore();
 
-        Button addButton = findViewById(R.id.buttonAddSchedule);
-        addButton.setOnClickListener(v -> showAddScheduleDialog());
+        return view;
     }
 
     private void loadDataFromFirestore() {
@@ -65,29 +67,25 @@ public class TimetableActivity extends AppCompatActivity {
                     List<DisplayableItem> displayableList = generateDisplayItems(scheduleEntries);
                     Log.d("CHECK", "displayableList size: " + displayableList.size());
 
-                    adapter = new TimetableAdapter(this, displayableList, 6);
+                    adapter = new TimetableAdapter(getContext(), displayableList, 6);
                     recyclerView.setAdapter(adapter);
-
                     adapter.setOnItemClickListener((view, entry) -> showPopup(view, entry));
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Firestore 불러오기 실패: " + e.getMessage()));
     }
 
     private String generateRandomColor() {
-        String[] palette = {
-                "#FFCDD2", "#F8BBD0", "#E1BEE7", "#D1C4E9",
+        String[] palette = {"#FFCDD2", "#F8BBD0", "#E1BEE7", "#D1C4E9",
                 "#C5CAE9", "#BBDEFB", "#B2EBF2", "#B2DFDB",
                 "#C8E6C9", "#DCEDC8", "#F0F4C3", "#FFF9C4",
-                "#FFE0B2", "#FFCCBC", "#D7CCC8", "#F5F5F5"
-        };
+                "#FFE0B2", "#FFCCBC", "#D7CCC8", "#F5F5F5"};
         return palette[new Random().nextInt(palette.length)];
     }
 
     private void showPopup(View view, ScheduleEntry entry) {
-        PopupMenu popup = new PopupMenu(this, view);
+        PopupMenu popup = new PopupMenu(getContext(), view);
         popup.getMenu().add("수정");
         popup.getMenu().add("삭제");
-
         popup.setOnMenuItemClickListener(item -> {
             String title = item.getTitle().toString();
             if (title.equals("수정")) {
@@ -97,7 +95,6 @@ public class TimetableActivity extends AppCompatActivity {
             }
             return true;
         });
-
         popup.show();
     }
 
@@ -106,13 +103,13 @@ public class TimetableActivity extends AppCompatActivity {
                 .document(entry.getId())
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "삭제 완료", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "삭제 완료", Toast.LENGTH_SHORT).show();
                     loadDataFromFirestore();
                 });
     }
 
     private void showEditScheduleDialog(ScheduleEntry entry) {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_schedule, null);
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_schedule, null);
         Spinner daySpinner = dialogView.findViewById(R.id.spinnerDay);
         Spinner startSpinner = dialogView.findViewById(R.id.spinnerStartTime);
         Spinner endSpinner = dialogView.findViewById(R.id.spinnerEndTime);
@@ -120,11 +117,11 @@ public class TimetableActivity extends AppCompatActivity {
         EditText classroom = dialogView.findViewById(R.id.editTextClassroom);
 
         String[] days = {"MON", "TUE", "WED", "THU", "FRI"};
-        daySpinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, days));
+        daySpinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, days));
 
         List<Integer> hours = new ArrayList<>();
         for (int i = 8; i <= 20; i++) hours.add(i);
-        ArrayAdapter<Integer> timeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, hours);
+        ArrayAdapter<Integer> timeAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, hours);
         startSpinner.setAdapter(timeAdapter);
         endSpinner.setAdapter(timeAdapter);
 
@@ -134,7 +131,7 @@ public class TimetableActivity extends AppCompatActivity {
         subject.setText(entry.getSubjectName());
         classroom.setText(entry.getClassroom());
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(requireContext())
                 .setTitle("시간표 수정")
                 .setView(dialogView)
                 .setPositiveButton("저장", (dialog, which) -> {
@@ -153,7 +150,7 @@ public class TimetableActivity extends AppCompatActivity {
     }
 
     private void showAddScheduleDialog() {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_schedule, null);
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_schedule, null);
         Spinner daySpinner = dialogView.findViewById(R.id.spinnerDay);
         Spinner startSpinner = dialogView.findViewById(R.id.spinnerStartTime);
         Spinner endSpinner = dialogView.findViewById(R.id.spinnerEndTime);
@@ -161,15 +158,15 @@ public class TimetableActivity extends AppCompatActivity {
         EditText classroom = dialogView.findViewById(R.id.editTextClassroom);
 
         String[] days = {"MON", "TUE", "WED", "THU", "FRI"};
-        daySpinner.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, days));
+        daySpinner.setAdapter(new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, days));
 
         List<Integer> hours = new ArrayList<>();
         for (int i = 8; i <= 20; i++) hours.add(i);
-        ArrayAdapter<Integer> timeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, hours);
+        ArrayAdapter<Integer> timeAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, hours);
         startSpinner.setAdapter(timeAdapter);
         endSpinner.setAdapter(timeAdapter);
 
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(requireContext())
                 .setTitle("시간표 추가")
                 .setView(dialogView)
                 .setPositiveButton("추가", (dialog, which) -> {
@@ -180,7 +177,7 @@ public class TimetableActivity extends AppCompatActivity {
                     String room = classroom.getText().toString().trim();
 
                     if (sub.isEmpty() || room.isEmpty() || start >= end) {
-                        Toast.makeText(this, "입력값 오류", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "입력값 오류", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -224,6 +221,7 @@ public class TimetableActivity extends AppCompatActivity {
         return result;
     }
 }
+
 
 
 

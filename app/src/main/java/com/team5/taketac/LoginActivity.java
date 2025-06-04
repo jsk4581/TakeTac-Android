@@ -77,7 +77,7 @@ public class LoginActivity extends AppCompatActivity {
                                         });
 
                                 Toast.makeText(this, "로그인 성공!", Toast.LENGTH_SHORT).show();
-                                startActivity(new Intent(this, HomeActivity.class));
+                                startActivity(new Intent(this,MainActivity.class));
                                 finish();
 
                             } else {
