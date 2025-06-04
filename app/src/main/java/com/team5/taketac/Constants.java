@@ -6,9 +6,7 @@ import java.util.Map;
 
 public class Constants {
 
-    // 카카오 REST API 키 (개발자 센터에서 발급받은 'REST API 키'를 여기에 입력)
-    // 예시: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    public static final String KAKAO_REST_API_KEY = "c14ff2f90a932b0beaf3c05da8fb4a95"; // <-- ⭐⭐⭐ 이 부분을 실제 키로 변경하세요! ⭐⭐⭐
+public static final String KAKAO_REST_API_KEY = BuildConfig.KAKAO_REST_API_KEY; // <-- ⭐⭐⭐ 이 부분을 실제 키로 변경하세요! ⭐⭐⭐
 
     // 카카오 길찾기 API Base URL
     public static final String KAKAO_DIRECTIONS_BASE_URL = "https://apis-navi.kakaomobility.com/";

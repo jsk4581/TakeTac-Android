@@ -20,7 +20,7 @@
 
         <meta-data
             android:name="com.kakao.sdk.AppKey"
-            android:value="45ce2cc4d6dd8ea14d9b1e9c0b6dff8a" />
+            android:value="${KAKAO_NATIVE_APP_KEY}" />
 
         <activity
             android:name=".MainActivity"
