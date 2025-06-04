@@ -12,6 +12,17 @@
         android:textSize="24sp"
         android:textStyle="bold"
         android:paddingBottom="24dp"/>
+    <Button
+        android:id="@+id/btnChat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="채팅하기" />
+    <Button
+        android:id="@+id/btnChatRooms"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="채팅방 목록" />
+
 
     <!-- 이 아래에 출발/도착지 입력 및 버튼 구성 예정 -->
     <Button
