@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -48,6 +47,7 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         DisplayableItem item = displayableItems.get(position);
+        Log.d("ADAPTER", "Binding position " + position + ": " + item.type);
 
         switch (item.type) {
             case TIME_LABEL:
@@ -62,10 +62,34 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
                 if (item.originalEntry != null) {
                     holder.subjectNameTextView.setVisibility(View.VISIBLE);
                     holder.classroomTextView.setVisibility(View.VISIBLE);
-                    holder.subjectNameTextView.setText(item.isContinuation ? "" : item.originalEntry.getSubjectName());
-                    holder.classroomTextView.setText(item.isContinuation ? "" : item.originalEntry.getClassroom());
+
+                    holder.subjectNameTextView.setText(item.originalEntry.getSubjectName());
+                    holder.classroomTextView.setText(item.originalEntry.getClassroom());
+
+                    if (item.isContinuation) {
+                        holder.subjectNameTextView.setText("");
+                        holder.classroomTextView.setText("");
+                    }
+
+                    // 🔥 색상 적용
+                    try {
+                        String colorHex = item.originalEntry.getColor();
+                        holder.itemView.setBackgroundColor(Color.parseColor(colorHex));
+                    } catch (Exception e) {
+                        holder.itemView.setBackgroundColor(Color.LTGRAY);
+                    }
+                } else {
+                    holder.subjectNameTextView.setVisibility(View.INVISIBLE);
+                    holder.classroomTextView.setVisibility(View.INVISIBLE);
                 }
-                holder.itemView.setBackground(ContextCompat.getDrawable(context, R.drawable.timetable_item_background));
+
+                holder.itemView.setOnLongClickListener(v -> {
+                    if (clickListener != null && item.originalEntry != null) {
+                        clickListener.onItemClick(v, item.originalEntry);
+                        return true;
+                    }
+                    return false;
+                });
                 break;
 
             case EMPTY_SLOT:
@@ -85,8 +109,6 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         this.displayableItems.clear();
         this.displayableItems.addAll(newItems);
         notifyDataSetChanged();
-        Log.d("CHECK", "어댑터 데이터 수: " + displayableItems.size());
-
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -100,6 +122,7 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         }
     }
 }
+
 
 
 

@@ -14,6 +14,10 @@ public class ScheduleEntry {
 
     public ScheduleEntry() {} // 🔥 반드시 있어야 Firestore가 객체로 변환 가능
 
+    private String color;
+    public String getColor() { return color; }
+    public void setColor(String color) { this.color = color; }
+
     public ScheduleEntry(String day, int startTime, int endTime, String subjectName, String classroom) {
         this.day = day;
         this.startTime = startTime;
@@ -46,4 +50,5 @@ public class ScheduleEntry {
                 !(this.endTime <= other.startTime || this.startTime >= other.endTime);
     }
 }
+
 
