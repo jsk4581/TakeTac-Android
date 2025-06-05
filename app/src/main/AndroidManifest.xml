@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <!-- 인터넷 권한 -->
-    <uses-permission android:name="android.permission.INTERNET" />
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.team5.taketac">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -16,7 +18,17 @@
         android:theme="@style/Theme.TakeTac"
         tools:targetApi="31">
 
-        <!-- 시작 액티비티 -->
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="${KAKAO_NATIVE_APP_KEY}" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+        </activity>
+
+        <activity android:name=".SignupActivity" />
+
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -26,16 +38,6 @@
             </intent-filter>
         </activity>
 
-        <!-- 화면 전환용 Activity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true" />
-
-        <activity android:name=".SignupActivity" />
-
-        <!-- ❌ 아래 두 줄 삭제: Fragment는 등록하지 않음 -->
-        <!-- <activity android:name=".HomeFragment" /> -->
-        <!-- <activity android:name=".TimetableFragment" /> -->
-
     </application>
+
 </manifest>
