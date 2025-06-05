@@ -14,11 +14,6 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Toolbar toolbar = findViewById(R.id.customToolbar);
-        setSupportActionBar(toolbar); // 툴바를 액션바로 지정
-        getSupportActionBar().setTitle("홈 화면"); // 화면 이름 지정
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true); // 뒤로가기 버튼
-
         Button btnChatRooms = findViewById(R.id.btnChatRooms);
         btnChatRooms.setOnClickListener(new View.OnClickListener() {
             @Override
