@@ -3,11 +3,14 @@ package com.team5.taketac;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,7 +26,7 @@ import com.team5.taketac.model.PartyRoom;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PublicMatchingActivity extends AppCompatActivity {
+public class PartyFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private PublicPartyAdapter adapter;
@@ -31,26 +34,35 @@ public class PublicMatchingActivity extends AppCompatActivity {
     private DatabaseReference partyRef;
     private TextView tvEmptyMessage;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_public_matching);
+    public PartyFragment() {
+        // Required empty public constructor
+    }
 
-        recyclerView = findViewById(R.id.rvParties);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+
+        View view = inflater.inflate(R.layout.fragment_party, container, false);
+
+        recyclerView = view.findViewById(R.id.rvParties);
+        tvEmptyMessage = view.findViewById(R.id.tvEmptyMessage);
+        FloatingActionButton fabCreate = view.findViewById(R.id.fabCreate);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new PublicPartyAdapter(partyList);
         recyclerView.setAdapter(adapter);
 
-        tvEmptyMessage = findViewById(R.id.tvEmptyMessage); // 🎯 레이아웃에 추가 필요
-
-        FloatingActionButton fabCreate = findViewById(R.id.fabCreate);
         fabCreate.setOnClickListener(v -> {
-            Intent intent = new Intent(PublicMatchingActivity.this, CreatePublicPartyActivity.class);
+            Intent intent = new Intent(getActivity(), CreatePublicPartyActivity.class);
             startActivity(intent);
         });
 
         partyRef = FirebaseDatabase.getInstance().getReference("partyRooms");
         loadPartyRooms();
+
+        return view;
     }
 
     private void loadPartyRooms() {
@@ -66,7 +78,6 @@ public class PublicMatchingActivity extends AppCompatActivity {
                 }
                 adapter.notifyDataSetChanged();
 
-                // 👇 빈 목록 메시지 표시
                 if (partyList.isEmpty()) {
                     tvEmptyMessage.setVisibility(View.VISIBLE);
                 } else {
@@ -76,7 +87,7 @@ public class PublicMatchingActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("PublicMatching", "DB 에러", error.toException());
+                Log.e("PartyFragment", "DB 에러", error.toException());
             }
         });
     }
