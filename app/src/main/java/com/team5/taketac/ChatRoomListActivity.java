@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -33,10 +35,17 @@ public class ChatRoomListActivity extends AppCompatActivity {
     private List<ChatRoom> chatRoomList;
     private DatabaseReference chatRoomsRef;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room_list);
+
+        Toolbar toolbar = findViewById(R.id.customToolbar);
+        setSupportActionBar(toolbar); // 툴바를 액션바로 지정
+        getSupportActionBar().setTitle("채팅목록"); // 화면 이름 지정
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true); // 뒤로가기 버튼
+
 
         recyclerView = findViewById(R.id.recyclerViewRooms);
         inputRoomName = findViewById(R.id.inputRoomName);

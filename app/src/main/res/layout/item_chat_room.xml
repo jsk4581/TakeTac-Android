@@ -5,6 +5,9 @@
     android:orientation="vertical"
     android:padding="12dp">
 
+    <!-- 공통 툴바 삽입 -->
+    <include layout="@layout/toolbar" />
+
     <TextView
         android:id="@+id/roomName"
         android:layout_width="wrap_content"

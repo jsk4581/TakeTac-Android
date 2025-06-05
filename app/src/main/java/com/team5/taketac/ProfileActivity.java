@@ -9,6 +9,7 @@ import android.provider.MediaStore;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.*;
@@ -40,6 +41,11 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile); // 해당 XML 먼저 만들어야 함
+
+        Toolbar toolbar = findViewById(R.id.customToolbar);
+        setSupportActionBar(toolbar); // 툴바를 액션바로 지정
+        getSupportActionBar().setTitle("프로필 화면"); // 화면 이름 지정
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true); // 뒤로가기 버튼
 
         imageProfile = findViewById(R.id.imageProfile);
         textEmail = findViewById(R.id.textEmail);

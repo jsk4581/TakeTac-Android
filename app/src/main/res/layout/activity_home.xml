@@ -5,6 +5,18 @@
     android:padding="24dp"
     android:background="#FFFFFF">
 
+    <!-- 공통 툴바 삽입 -->
+    <include layout="@layout/toolbar" />
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/customToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:titleTextColor="@android:color/white"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -12,11 +24,6 @@
         android:textSize="24sp"
         android:textStyle="bold"
         android:paddingBottom="24dp"/>
-    <Button
-        android:id="@+id/btnChat"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="채팅하기" />
     <Button
         android:id="@+id/btnChatRooms"
         android:layout_width="wrap_content"
@@ -27,7 +34,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="내 정보" />
-
+    <Button
+        android:id="@+id/btnGoToMatching"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="매칭" />
 
     <!-- 이 아래에 출발/도착지 입력 및 버튼 구성 예정 -->
 </LinearLayout>

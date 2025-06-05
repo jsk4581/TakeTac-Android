@@ -23,6 +23,9 @@
         <activity android:name=".ChatRoomListActivity" />
         <activity android:name=".ChatActivity" />
         <activity android:name=".ProfileActivity" />
+        <activity android:name=".CreatePublicPartyActivity" />
+        <activity android:name=".PublicMatchingActivity" />
+
 
 
         <activity

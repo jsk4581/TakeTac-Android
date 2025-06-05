@@ -47,6 +47,7 @@ dependencies {
 
     // Glide (이미지 로딩 라이브러리)
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.firebase.firestore)
     annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
 
     testImplementation(libs.junit)
