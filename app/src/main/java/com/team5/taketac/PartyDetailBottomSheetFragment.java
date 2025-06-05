@@ -1,7 +1,7 @@
 package com.team5.taketac;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,14 +14,15 @@ import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.database.FirebaseDatabase;
+import com.team5.taketac.model.PartyRoom;
 
 public class PartyDetailBottomSheetFragment extends BottomSheetDialogFragment {
 
-    private PublicParty publicParty;
+    private PartyRoom party;
 
-    public PartyDetailBottomSheetFragment(PublicParty party) {
-        this.publicParty = party;
+    public PartyDetailBottomSheetFragment(PartyRoom party) {
+        this.party = party;
     }
 
     @Nullable
@@ -38,55 +39,37 @@ public class PartyDetailBottomSheetFragment extends BottomSheetDialogFragment {
         Button btnJoin = view.findViewById(R.id.btnJoinParty);
         Button btnDelete = view.findViewById(R.id.btnDeleteParty);
 
-        try {
-            // 기본 정보 표시
-            tvTitle.setText(publicParty.getTitle() != null ? publicParty.getTitle() : "제목 없음");
-            tvLocation.setText(publicParty.getLocation() != null ? publicParty.getLocation() : "장소 없음");
+        tvTitle.setText(party.getTitle());
+        tvLocation.setText(party.getLocation());
 
-            String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            String creatorId = publicParty.getCreatorId();
-            String docId = publicParty.getId();
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-            Log.d("PartyDetail", "currentUid = " + currentUserId);
-            Log.d("PartyDetail", "creatorId = " + creatorId);
-            Log.d("PartyDetail", "docId = " + docId);
-
-            // 삭제 버튼 표시 여부
-            if (creatorId != null && creatorId.equals(currentUserId)) {
-                btnDelete.setVisibility(View.VISIBLE);
-
-                btnDelete.setOnClickListener(v1 -> {
-                    if (docId == null || docId.isEmpty()) {
-                        Toast.makeText(getContext(), "문서 ID가 없습니다. 삭제할 수 없습니다.", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    FirebaseFirestore.getInstance()
-                            .collection("publicParties")
-                            .document(docId)
-                            .delete()
-                            .addOnSuccessListener(unused -> {
-                                Toast.makeText(getContext(), "삭제 완료", Toast.LENGTH_SHORT).show();
-                                dismiss();
-                            })
-                            .addOnFailureListener(e -> {
-                                Log.e("PartyDetail", "삭제 실패", e);
-                                Toast.makeText(getContext(), "삭제 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            });
-                });
-            } else {
-                btnDelete.setVisibility(View.GONE);
-            }
-
-        } catch (Exception e) {
-            Log.e("PartyDetail", "예외 발생", e);
-            Toast.makeText(getContext(), "정보를 불러오지 못했습니다.", Toast.LENGTH_SHORT).show();
-            dismiss();  // 안전하게 닫기
+        // 🔐 생성자만 삭제 버튼 보이기
+        if (party.getCreatorUid() != null && party.getCreatorUid().equals(currentUserId)) {
+            btnDelete.setVisibility(View.VISIBLE);
+            btnDelete.setOnClickListener(v -> {
+                FirebaseDatabase.getInstance()
+                        .getReference("partyRooms")
+                        .child(party.getId())
+                        .removeValue()
+                        .addOnSuccessListener(unused -> {
+                            Toast.makeText(getContext(), "삭제 완료", Toast.LENGTH_SHORT).show();
+                            dismiss();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(getContext(), "삭제 실패: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            });
+        } else {
+            btnDelete.setVisibility(View.GONE);
         }
 
-        // 참여 버튼은 나중에 구현 예정
+        // 💬 채팅방으로 이동 (파티 ID = 채팅방 ID)
         btnJoin.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "참여 기능은 준비 중입니다.", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getContext(), ChatActivity.class);
+            intent.putExtra("chatRoomId", party.getId());
+            intent.putExtra("chatRoomName", party.getTitle());
+            startActivity(intent);
         });
     }
 }

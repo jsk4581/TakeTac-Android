@@ -1,5 +1,7 @@
 package com.team5.taketac;
 
+import static android.content.Intent.getIntent;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;

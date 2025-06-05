@@ -17,7 +17,7 @@ public class HomeActivity extends AppCompatActivity {
         btnChatRooms.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, ChatRoomListActivity.class);
+                Intent intent = new Intent(HomeActivity.this, PublicMatchingActivity.class);
                 startActivity(intent);
             }
         });

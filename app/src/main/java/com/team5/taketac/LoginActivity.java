@@ -25,8 +25,8 @@ public class LoginActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
 
         // 뷰 초기화
-        emailInput = findViewById(R.id.editTextEmail);
-        passwordInput = findViewById(R.id.editTextPassword);
+        emailInput = findViewById(R.id.emailInput);
+        passwordInput = findViewById(R.id.passwordInput);
         loginButton = findViewById(R.id.loginButton);
         signupButton = findViewById(R.id.signupButton);
 
