@@ -15,19 +15,21 @@
             android:text="회원가입"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:paddingBottom="24dp" />
+            android:layout_marginBottom="24dp" />
 
         <EditText
             android:id="@+id/nicknameInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="닉네임 입력" />
+            android:hint="닉네임 입력"
+            android:layout_marginTop="12dp" />
 
         <EditText
             android:id="@+id/signupEmailInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="가천대 이메일 (xxx@gachon.ac.kr)" />
+            android:hint="가천대 이메일 (xxx@gachon.ac.kr)"
+            android:layout_marginTop="12dp" />
 
         <EditText
             android:id="@+id/signupPasswordInput"
@@ -35,7 +37,29 @@
             android:layout_height="wrap_content"
             android:hint="비밀번호"
             android:inputType="textPassword"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="12dp" />
+
+        <EditText
+            android:id="@+id/editAddressInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="읍면동 검색"
+            android:inputType="text"
+            android:layout_marginTop="12dp" />
+
+        <Button
+            android:id="@+id/btnSearchAddress"
+            android:text="주소 검색"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" />
+
+        <TextView
+            android:id="@+id/textSelectedAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="선택된 주소: 없음"
+            android:layout_marginTop="12dp" />
 
         <TextView
             android:id="@+id/signupErrorText"
@@ -43,7 +67,7 @@
             android:layout_height="wrap_content"
             android:textColor="#FF0000"
             android:text=""
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="12dp" />
 
         <Button
             android:id="@+id/signupConfirmButton"
@@ -51,6 +75,7 @@
             android:layout_height="wrap_content"
             android:text="가입하기"
             android:layout_marginTop="24dp"
-            android:backgroundTint="#014F9e"/>
+            android:backgroundTint="#014F9e" />
     </LinearLayout>
 </ScrollView>
+
