@@ -26,6 +26,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import com.team5.taketac.adapter.MessageAdapter;
 import com.team5.taketac.model.Message;
+import com.team5.taketac.model.PartyRoom;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -68,6 +69,7 @@ public class ChatActivity extends AppCompatActivity {
         String chatRoomName = getIntent().getStringExtra("chatRoomName");
         setTitle(chatRoomName);
 
+
         recyclerView = findViewById(R.id.recyclerView);
         inputMessage = findViewById(R.id.inputMessage);
         sendButton = findViewById(R.id.sendButton);
@@ -103,7 +105,7 @@ public class ChatActivity extends AppCompatActivity {
             });
 
             DatabaseReference roomRef = FirebaseDatabase.getInstance()
-                    .getReference("chatRooms").child(chatRoomId).child("users");
+                    .getReference("partyRooms").child(chatRoomId).child("users");
 
             roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override

@@ -9,6 +9,7 @@ import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -16,10 +17,17 @@ import androidx.core.view.WindowCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.team5.taketac.model.PartyRoom;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CreatePublicPartyActivity extends AppCompatActivity {
 
@@ -28,6 +36,12 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
     private Button btnCreate;
 
     private int selYear, selMonth, selDay, selHour, selMinute;
+
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+    DatabaseReference userRef = FirebaseDatabase.getInstance()
+            .getReference("users")
+            .child(currentUser.getUid())
+            .child("nickname");
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -101,19 +115,43 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
                 return;
             }
 
-            PartyRoom party = new PartyRoom(title, location, timestamp, uid);
-            FirebaseDatabase.getInstance()
-                    .getReference("partyRooms")
-                    .child(party.getId())
-                    .setValue(party)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "생성 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        Log.e("CreateParty", "파티 생성 실패", e);
-                    });
+            // 닉네임 먼저 불러온 후 PartyRoom 저장
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String nickname = snapshot.getValue(String.class);
+                    if (nickname == null) {
+                        nickname = "익명";
+                    }
+
+                    // users 맵 만들기
+                    Map<String, String> usersMap = new HashMap<>();
+                    usersMap.put(uid, nickname);
+
+                    // 파티룸 객체 만들기
+                    PartyRoom party = new PartyRoom(title, location, timestamp, uid);
+                    party.setUsers(usersMap);
+
+                    // Firebase에 저장
+                    FirebaseDatabase.getInstance()
+                            .getReference("partyRooms")
+                            .child(party.getId())
+                            .setValue(party)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(CreatePublicPartyActivity.this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(CreatePublicPartyActivity.this, "생성 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                                Log.e("CreateParty", "파티 생성 실패", e);
+                            });
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(CreatePublicPartyActivity.this, "닉네임 불러오기 실패", Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 
@@ -124,4 +162,7 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
     private void updateTimeText() {
         tvTime.setText(String.format("%02d:%02d", selHour, selMinute));
     }
+
+
+
 }
