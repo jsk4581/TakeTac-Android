@@ -1,11 +1,15 @@
 package com.team5.taketac;
 
+import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,7 +18,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);  // 🔹 activity_main.xml에 fragment_container와 BottomNavigationView가 있어야 함
+
+        // ✅ 로그인 여부 확인
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
+        // 🔹 로그인된 경우 메인 레이아웃 로딩
+        setContentView(R.layout.activity_main);
 
         bottomNav = findViewById(R.id.bottomNavigationView);
 

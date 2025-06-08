@@ -18,7 +18,7 @@
 
         <!-- 시작 액티비티 -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,9 +26,9 @@
             </intent-filter>
         </activity>
 
-        <!-- 화면 전환용 Activity -->
+        <!-- 로그인 Activity -->
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true" />
 
         <activity android:name=".SignupActivity"/>
