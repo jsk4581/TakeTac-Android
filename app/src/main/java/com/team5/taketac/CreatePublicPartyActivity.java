@@ -1,0 +1,127 @@
+package com.team5.taketac;
+
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
+import com.team5.taketac.model.PartyRoom;
+
+import java.util.Calendar;
+
+public class CreatePublicPartyActivity extends AppCompatActivity {
+
+    private TextInputEditText etTitle, etLocation;
+    private TextView tvDate, tvTime;
+    private Button btnCreate;
+
+    private int selYear, selMonth, selDay, selHour, selMinute;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_create_public_party);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+
+        // 툴바 설정
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
+
+        etTitle = findViewById(R.id.etTitle);
+        etLocation = findViewById(R.id.etLocation);
+        tvDate = findViewById(R.id.tvDate);
+        tvTime = findViewById(R.id.tvTime);
+        btnCreate = findViewById(R.id.btnCreate);
+
+        // 현재 날짜/시간 기본값
+        Calendar now = Calendar.getInstance();
+        selYear = now.get(Calendar.YEAR);
+        selMonth = now.get(Calendar.MONTH);
+        selDay = now.get(Calendar.DAY_OF_MONTH);
+        selHour = now.get(Calendar.HOUR_OF_DAY);
+        selMinute = now.get(Calendar.MINUTE);
+
+        updateDateText();
+        updateTimeText();
+
+        tvDate.setOnClickListener(v -> new DatePickerDialog(
+                this,
+                (DatePicker view, int year, int month, int dayOfMonth) -> {
+                    selYear = year;
+                    selMonth = month;
+                    selDay = dayOfMonth;
+                    updateDateText();
+                },
+                selYear, selMonth, selDay
+        ).show());
+
+        tvTime.setOnClickListener(v -> new TimePickerDialog(
+                this,
+                (tp, hourOfDay, minute) -> {
+                    selHour = hourOfDay;
+                    selMinute = minute;
+                    updateTimeText();
+                },
+                selHour, selMinute,
+                true
+        ).show());
+
+        btnCreate.setOnClickListener(v -> {
+            String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
+            String location = etLocation.getText() != null ? etLocation.getText().toString().trim() : "";
+
+            if (title.isEmpty() || location.isEmpty()) {
+                Toast.makeText(this, "제목과 장소를 모두 입력하세요.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Calendar cal = Calendar.getInstance();
+            cal.set(selYear, selMonth, selDay, selHour, selMinute, 0);
+            long timestamp = cal.getTimeInMillis();
+
+            String uid = FirebaseAuth.getInstance().getCurrentUser() != null
+                    ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                    : null;
+
+            if (uid == null) {
+                Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            PartyRoom party = new PartyRoom(title, location, timestamp, uid);
+            FirebaseDatabase.getInstance()
+                    .getReference("partyRooms")
+                    .child(party.getId())
+                    .setValue(party)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "생성 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        Log.e("CreateParty", "파티 생성 실패", e);
+                    });
+        });
+    }
+
+    private void updateDateText() {
+        tvDate.setText(String.format("%04d-%02d-%02d", selYear, selMonth + 1, selDay));
+    }
+
+    private void updateTimeText() {
+        tvTime.setText(String.format("%02d:%02d", selHour, selMinute));
+    }
+}
