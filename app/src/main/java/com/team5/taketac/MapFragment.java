@@ -2,111 +2,107 @@ package com.team5.taketac;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.location.Location;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.annotation.*;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.kakao.vectormap.KakaoMap;
-import com.kakao.vectormap.KakaoMapReadyCallback;
-import com.kakao.vectormap.LatLng;
-import com.kakao.vectormap.LatLngBounds;
-import com.kakao.vectormap.MapLifeCycleCallback;
-import com.kakao.vectormap.MapView;
-import com.kakao.vectormap.camera.CameraAnimation;
+import com.google.firebase.firestore.*;
+import com.kakao.vectormap.*;
 import com.kakao.vectormap.camera.CameraUpdate;
 import com.kakao.vectormap.camera.CameraUpdateFactory;
-import com.kakao.vectormap.label.LabelLayer;
-import com.kakao.vectormap.label.LabelManager;
-import com.kakao.vectormap.label.LabelOptions;
-import com.kakao.vectormap.label.LabelStyle;
-import com.kakao.vectormap.label.LabelStyles;
-import com.kakao.vectormap.route.RouteLine;
-import com.kakao.vectormap.route.RouteLineLayer;
-import com.kakao.vectormap.route.RouteLineManager;
-import com.kakao.vectormap.route.RouteLineOptions;
-import com.kakao.vectormap.route.RouteLineSegment;
-import com.kakao.vectormap.route.RouteLineStyle;
-import com.kakao.vectormap.route.RouteLineStyles;
-
-import com.kakao.vectormap.shape.MapPoints;
+import com.kakao.vectormap.label.*;
+import com.kakao.vectormap.route.*;
 import com.team5.taketac.api.KakaoDirectionsService;
 import com.team5.taketac.model.KakaoDirectionsResponse;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
+import retrofit2.*;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MapFragment extends Fragment {
 
-    private static final String TAG = "MapFragment";
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
-
     private MapView mapView;
     private KakaoMap kakaoMap;
-    private LatLng currentLocation;
     private LatLng destination;
     private String destinationName;
 
-    private FusedLocationProviderClient fusedLocationClient;
-    private KakaoDirectionsService directionsService;
     private LabelManager labelManager;
     private RouteLineManager routeLineManager;
     private RouteLine currentRouteLine;
 
+    private FusedLocationProviderClient fusedLocationClient;
+    private final Handler locationHandler = new Handler();
+    private final int REFRESH_INTERVAL = 10_000;
+    private final Map<String, Label> userMarkers = new HashMap<>();
 
+    private List<String> matchedUserIds;
+    private boolean cameraMoved = false;
+
+    private KakaoDirectionsService directionsService;
 
     @Nullable
     @Override
-    public android.view.View onCreateView(@NonNull android.view.LayoutInflater inflater,
-                                          @Nullable android.view.ViewGroup container,
-                                          @Nullable Bundle savedInstanceState) {
-        android.view.View view = inflater.inflate(R.layout.fragment_map, container, false);
+    public View onCreateView(@NonNull android.view.LayoutInflater inflater,
+                             @Nullable android.view.ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+
+        View view = inflater.inflate(R.layout.fragment_map, container, false);
         mapView = view.findViewById(R.id.map_view);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
+        // 홈화면 이동 버튼 동작 연결
+        Button btnHome = view.findViewById(R.id.btn_homefragment);
+        btnHome.setOnClickListener(v -> {
+            Fragment homeFragment = new HomeFragment();
+            Bundle bundle = new Bundle();
+            bundle.putBoolean("is_matched", true);
+            bundle.putString("selected_origin", destinationName);
+            bundle.putStringArrayList("party_members", new ArrayList<>(matchedUserIds));
+            homeFragment.setArguments(bundle);
+
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, homeFragment)
+                    .commit();
+        });
+
+        // Kakao Directions API 준비
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.KAKAO_DIRECTIONS_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         directionsService = retrofit.create(KakaoDirectionsService.class);
 
-
-        // 출발지 키 받기
         Bundle args = getArguments();
-        if (args != null && args.containsKey("origin_latitude") && args.containsKey("origin_longitude")) {
-            double lat = args.getDouble("origin_latitude");
-            double lon = args.getDouble("origin_longitude");
+        if (args != null) {
+            double lat = args.getDouble("origin_latitude", 37.4501);
+            double lon = args.getDouble("origin_longitude", 127.1277);
             destination = LatLng.from(lat, lon);
-            destinationName = args.getString("origin_name", "목적지");  // 기본값으로 "목적지"
-        } else {
-            // fallback
-            destination = Constants.STATIONS.get("가천대역");
-            destinationName = "가천대역";
+            destinationName = args.getString("origin_name", "목적지");
+            matchedUserIds = args.getStringArrayList("matched_user_ids");
         }
-
-
 
         mapView.start(new MapLifeCycleCallback() {
             @Override
-            public void onMapDestroy() { }
+            public void onMapDestroy() {
+                Log.d("MapFragment", "onMapDestroy: 지도 뷰 소멸");
+            }
 
             @Override
-            public void onMapError(Exception error) {
-                Log.e(TAG, "지도 에러: " + error.getMessage());
+            public void onMapError(@NonNull Exception e) {
+                Log.e("MapFragment", "지도 에러: " + e.getMessage());
             }
         }, new KakaoMapReadyCallback() {
             @Override
@@ -114,19 +110,19 @@ public class MapFragment extends Fragment {
                 kakaoMap = map;
                 labelManager = kakaoMap.getLabelManager();
                 routeLineManager = kakaoMap.getRouteLineManager();
-                requestLocationPermissionAndGet();
+                requestLocationPermissionAndStart();
             }
         });
 
         return view;
     }
 
-    private void requestLocationPermissionAndGet() {
+    private void requestLocationPermissionAndStart() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1001);
         } else {
-            getLastLocation();
+            startTrackingLoop();
         }
     }
 
@@ -134,69 +130,108 @@ public class MapFragment extends Fragment {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE &&
-                grantResults.length > 0 &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            getLastLocation();
+        if (requestCode == 1001 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startTrackingLoop();
         } else {
             Toast.makeText(getContext(), "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void getLastLocation() {
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(getContext(), "위치 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        fusedLocationClient.getCurrentLocation(
-                com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
-                null
-        ).addOnSuccessListener(location -> {
-            if (location != null) {
-                currentLocation = LatLng.from(location.getLatitude(), location.getLongitude());
-                Log.d("MapFragment", "현재 위치 받음: " + currentLocation);
-
-                addMarker(currentLocation, "내 위치");
-                addMarker(destination, destinationName);
-                findRoute(currentLocation, destination);
-            } else {
-                Toast.makeText(getContext(), "위치를 찾을 수 없습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+    private void startTrackingLoop() {
+        locationHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                updateMyLocation();
+                updateMatchedUserLocations();
+                locationHandler.postDelayed(this, REFRESH_INTERVAL);
             }
-        }).addOnFailureListener(e -> {
-            Log.e("MapFragment", "위치 요청 실패(getCurrentLocation): " + e.getMessage());
-            Toast.makeText(getContext(), "위치 정보를 가져오는 데 실패했습니다.", Toast.LENGTH_SHORT).show();
         });
     }
 
+    private void updateMyLocation() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) return;
 
-
-    private void addMarker(LatLng position, String tag) {
-        try {
-            if (labelManager == null) {
-                Log.e("addMarker", "labelManager is null");
-                return;
+        fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+            if (location != null) {
+                LatLng pos = LatLng.from(location.getLatitude(), location.getLongitude());
+                moveCameraOnce(pos);
+                findRoute(pos, destination); // 경로 요청
             }
+        });
+    }
 
-            LabelLayer layer = labelManager.getLayer();
-            if (layer == null) {
-                Log.e("addMarker", "LabelLayer is null");
-                return;
-            }
-
-            LabelStyle style = LabelStyle.from(R.drawable.ic_launcher_foreground);
-            LabelOptions options = LabelOptions.from(position)
-                    .setTag(tag)
-                    .setStyles(LabelStyles.from(style));
-
-            layer.addLabel(options);
-            Log.d("addMarker", "Marker added at: " + position.toString() + " with tag: " + tag);
-
-        } catch (Exception e) {
-            Log.e("addMarker", "Error while adding marker", e);
+    private void moveCameraOnce(LatLng center) {
+        if (!cameraMoved && kakaoMap != null) {
+            cameraMoved = true;
+            CameraUpdate update = CameraUpdateFactory.newCenterPosition(center, 15);
+            kakaoMap.moveCamera(update);
         }
     }
+
+    private void updateMatchedUserLocations() {
+        if (matchedUserIds == null || matchedUserIds.isEmpty()) return;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        for (String uid : matchedUserIds) {
+            db.collection("users").document(uid).collection("location").document("current")
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        if (snapshot.exists()) {
+                            Double lat = snapshot.getDouble("latitude");
+                            Double lon = snapshot.getDouble("longitude");
+                            if (lat != null && lon != null) {
+                                LatLng pos = LatLng.from(lat, lon);
+                                addOrUpdateMarker(uid, pos);
+                            }
+                        }
+                    });
+        }
+    }
+
+    private void addOrUpdateMarker(String uid, LatLng position) {
+        try {
+            LabelLayer layer = labelManager.getLayer();
+
+            // 이미 마커가 있는 경우 위치만 이동
+            if (userMarkers.containsKey(uid)) {
+                userMarkers.get(uid).moveTo(position);
+                return;
+            }
+
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("users").document(uid)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        String nickname = uid; // 기본값: uid
+                        if (doc.exists()) {
+                            String nick = doc.getString("nickname");
+                            if (nick != null && !nick.isEmpty()) {
+                                nickname = nick;
+                            }
+                        }
+
+                        LabelStyle style = LabelStyle.from(R.mipmap.ic_marker)
+                                .setTextStyles(LabelTextStyle.from(32, Color.parseColor("#DB5461")));
+
+                        LabelOptions options = LabelOptions.from(position)
+                                .setTag(uid)
+                                .setStyles(LabelStyles.from(style))
+                                .setTexts(new LabelTextBuilder().setTexts(nickname));
+
+                        Label label = layer.addLabel(options);
+                        userMarkers.put(uid, label);
+                    })
+                    .addOnFailureListener(e -> Log.e("MapFragment", "닉네임 가져오기 실패: " + uid, e));
+
+        } catch (Exception e) {
+            Log.e("MapFragment", "마커 갱신 오류: " + uid, e);
+        }
+    }
+
+
+
+
 
     private void findRoute(LatLng origin, LatLng dest) {
         String auth = "KakaoAK " + Constants.KAKAO_REST_API_KEY;
@@ -223,41 +258,30 @@ public class MapFragment extends Fragment {
                         }
 
                         if (!points.isEmpty()) {
-                            RouteLineStyle style = RouteLineStyle.from(
-                                    10,                      // 선 두께
-                                    0xFF007AFF,              // 선 색 (파란색)
-                                    3,                       // 외곽선 두께
-                                    0xFF000000               // 외곽선 색 (검정)
-                            );
-
-                            RouteLineOptions options = RouteLineOptions.from(
-                                    RouteLineSegment.from(points, RouteLineStyles.from(style))
-                            );
-
-                            // 경로 레이어에서 이전 경로 제거
-                            RouteLineLayer routeLineLayer = routeLineManager.getLayer();
+                            RouteLineStyle style = RouteLineStyle.from(10, 0xFF007AFF, 3, 0xFF000000);
+                            RouteLineOptions options = RouteLineOptions.from(RouteLineSegment.from(points, RouteLineStyles.from(style)));
+                            RouteLineLayer layer = routeLineManager.getLayer();
                             if (currentRouteLine != null) {
-                                routeLineLayer.remove(currentRouteLine);
+                                layer.remove(currentRouteLine);
                             }
-
-                            // 새 경로 추가 및 보관
-                            currentRouteLine = routeLineLayer.addRouteLine(options);
-
-                            // --- 카메라 이동 (fitBounds) ---
-                            LatLng[] pointArray = points.toArray(new LatLng[0]);
-                            CameraUpdate update = CameraUpdateFactory.fitMapPoints(pointArray, 100);
-                            kakaoMap.moveCamera(update, CameraAnimation.from(500));
+                            currentRouteLine = layer.addRouteLine(options);
                         }
                     }
                 } else {
-                    Log.e(TAG, "API 응답 오류: " + response.code());
+                    Log.e("MapFragment", "경로 API 응답 오류: " + response.code());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<KakaoDirectionsResponse> call, @NonNull Throwable t) {
-                Log.e(TAG, "길찾기 실패: " + t.getMessage());
+                Log.e("MapFragment", "경로 요청 실패: " + t.getMessage());
             }
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        locationHandler.removeCallbacksAndMessages(null);
     }
 }

@@ -1,5 +1,7 @@
 package com.team5.taketac;
 
+import static com.team5.taketac.BuildConfig.KAKAO_NATIVE_APP_KEY;
+
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -10,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.kakao.vectormap.KakaoMapSdk;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,3 +70,5 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 }
+
+

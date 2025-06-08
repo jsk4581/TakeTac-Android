@@ -17,10 +17,12 @@ import com.google.android.gms.tasks.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.*;
-import com.google.firebase.firestore.*;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +34,7 @@ public class ProfileFragment extends Fragment {
     private ImageView imageProfile;
     private TextView textEmail, textAddress;
     private EditText editNickname, editPassword;
-    private Button btnChangePassword, btnSave, btnEditAddress;
+    private Button btnChangePassword, btnSave, btnEditAddress, btnLogout;
 
     private Uri imageUri;
     private FirebaseUser currentUser;
@@ -59,6 +61,7 @@ public class ProfileFragment extends Fragment {
         btnChangePassword = view.findViewById(R.id.btnChangePassword);
         btnSave = view.findViewById(R.id.btnSave);
         btnEditAddress = view.findViewById(R.id.btnEditAddress);
+        btnLogout = view.findViewById(R.id.btnLogout); // ← 추가
 
         progressDialog = new ProgressDialog(getContext());
         progressDialog.setCancelable(false);
@@ -95,6 +98,17 @@ public class ProfileFragment extends Fragment {
         });
 
         btnSave.setOnClickListener(v -> saveUserInfo());
+
+        // ✅ 로그아웃 버튼 동작
+        btnLogout.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            Toast.makeText(getContext(), "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show();
+
+            Intent intent = new Intent(requireContext(), LoginActivity.class); // ← 로그인 화면으로 이동
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // 백스택 제거
+            startActivity(intent);
+            requireActivity().finish();
+        });
 
         return view;
     }
@@ -177,6 +191,9 @@ public class ProfileFragment extends Fragment {
             progressDialog.dismiss();
             Toast.makeText(getContext(), task.isSuccessful() ? "저장 완료" : "저장 실패", Toast.LENGTH_SHORT).show();
         });
+        firestore.collection("users")
+                .document(currentUser.getEmail())
+                .set(Collections.singletonMap("nickname", nickname), SetOptions.merge());
     }
 
     @Override
@@ -205,11 +222,3 @@ public class ProfileFragment extends Fragment {
         }
     }
 }
-
-
-
-
-
-
-
-
