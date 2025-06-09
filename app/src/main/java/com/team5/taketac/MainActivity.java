@@ -20,6 +20,12 @@ public class MainActivity extends AppCompatActivity {
 
     private BottomNavigationView bottomNav;
 
+    // 🔹 재사용할 프래그먼트들
+    private Fragment homeFragment;
+    private Fragment partyFragment;
+    private Fragment timetableFragment;
+    private Fragment profileFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,11 +46,17 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNav = findViewById(R.id.bottomNavigationView);
 
-        // 🔹 초기화면
+        // 🔹 프래그먼트 초기화 (한 번만 생성)
+        homeFragment = new HomeFragment();
+        partyFragment = new PartyFragment();
+        timetableFragment = new TimetableFragment();
+        profileFragment = new ProfileFragment();
+
+        // 🔹 초기화면 설정
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.fragment_container, new HomeFragment())
+                    .replace(R.id.fragment_container, homeFragment)
                     .commit();
         }
 
@@ -54,13 +66,13 @@ public class MainActivity extends AppCompatActivity {
 
             int id = item.getItemId();
             if (id == R.id.nav_home) {
-                selectedFragment = new HomeFragment();
+                selectedFragment = homeFragment;
             } else if (id == R.id.nav_party) {
-                selectedFragment = new PartyFragment();
+                selectedFragment = partyFragment;
             } else if (id == R.id.nav_timetable) {
-                selectedFragment = new TimetableFragment();
+                selectedFragment = timetableFragment;
             } else if (id == R.id.nav_profile) {
-                selectedFragment = new ProfileFragment();
+                selectedFragment = profileFragment;
             }
 
             if (selectedFragment != null) {
@@ -75,5 +87,3 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 }
-
-

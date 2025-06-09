@@ -14,34 +14,23 @@ public static final String KAKAO_REST_API_KEY = BuildConfig.KAKAO_REST_API_KEY; 
     // 가천대학교 근처 지하철역 정보 (이름과 위도, 경도)
     public static final Map<String, LatLng> STATIONS = new HashMap<>();
     static {
-        // 실제 역의 정확한 위도, 경도를 입력하세요.
-        // 가천대역: 37.448550, 127.126588
-        STATIONS.put("가천대역", LatLng.from(37.448550, 127.126588));
-        // 복정역: 37.472714, 127.128795
-        STATIONS.put("복정역", LatLng.from(37.472714, 127.128795));
-        // 태평역: 37.441485, 127.139686
-        STATIONS.put("태평역", LatLng.from(37.441485, 127.139686));
-        // 모란역: 37.433895, 127.125712
-        STATIONS.put("모란역", LatLng.from(37.433895, 127.125712));
-        // 수진역: 37.438510, 127.142078
-        STATIONS.put("수진역", LatLng.from(37.438510, 127.142078));
-        // 기타 필요한 역들을 추가하세요...
+        
+        STATIONS.put("가천대역", LatLng.from(37.44960200000001, 127.126635));
+        STATIONS.put("복정역", LatLng.from(37.470375, 127.126685));
+        STATIONS.put("태평역", LatLng.from(37.439854, 127.128035));
+        STATIONS.put("모란역", LatLng.from(37.432124, 127.129064));
+        STATIONS.put("모란역", LatLng.from(37.432124, 127.129064));
+        STATIONS.put("test", LatLng.from(37.4551254, 127.1334847));
     }
 
     // 가천대학교 학과 건물 정보 (이름과 위도, 경도)
     public static final Map<String, LatLng> BUILDINGS = new HashMap<>();
     static {
-        // 실제 건물의 정확한 위도, 경도를 입력하세요.
-        // 비전타워: 37.450123, 127.133210
-        BUILDINGS.put("비전타워", LatLng.from(37.450123, 127.133210));
-        // 공과대학1 (글로벌캠퍼스): 37.450890, 127.131970
-        BUILDINGS.put("공과대학1", LatLng.from(37.450890, 127.131970));
-        // 글로벌캠퍼스 (전체 영역의 중심 또는 대표 건물): 37.451700, 127.130950
-        BUILDINGS.put("글로벌캠퍼스", LatLng.from(37.451700, 127.130950));
-        // 예술대학: 37.452500, 127.132500
-        BUILDINGS.put("예술대학", LatLng.from(37.452500, 127.132500));
-        // 법과대학: 37.451000, 127.134000
-        BUILDINGS.put("법과대학", LatLng.from(37.451000, 127.134000));
-        // 기타 필요한 학과 건물들을 추가하세요...
+        BUILDINGS.put("비전타워", LatLng.from(37.4494941, 127.1271216));
+        BUILDINGS.put("산악협력관1", LatLng.from(37.4507128, 127.1288495));
+        BUILDINGS.put("예술체육대학1", LatLng.from(37.4507128, 127.1288495));
+        BUILDINGS.put("교육대학원", LatLng.from(37.4519255, 127.1318083));
+        BUILDINGS.put("학생회관", LatLng.from(37.4503017, 127.1301802));
+        BUILDINGS.put("AI관", LatLng.from(37.4507128, 127.1288495));
     }
 }
