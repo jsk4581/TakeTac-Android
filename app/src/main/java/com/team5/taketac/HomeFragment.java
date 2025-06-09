@@ -13,14 +13,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.location.*;
 import com.google.firebase.auth.*;
 import com.google.firebase.firestore.*;
 import com.kakao.vectormap.LatLng;
-import java.util.*;
 import com.team5.taketac.adapter.ChatRoomAdapter;
 import com.team5.taketac.model.ChatRoomInfo;
-import com.team5.taketac.model.PartyRoom;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+// ... 생략된 import는 이전 그대로 유지 ...
 
 public class HomeFragment extends Fragment {
 
@@ -46,6 +50,7 @@ public class HomeFragment extends Fragment {
     private Runnable delayedMatchRunnable;
 
     private boolean isMatched = false;
+    private boolean hasMatched = false; // ✅ 중복 실행 방지용
     private List<String> currentPartyMembers = new ArrayList<>();
 
     @Nullable
@@ -62,14 +67,22 @@ public class HomeFragment extends Fragment {
         btnCancelMatch = view.findViewById(R.id.btn_cancel_match);
         textViewCount = view.findViewById(R.id.text_view_count);
         recyclerChatRooms = view.findViewById(R.id.recycler_chatrooms);
-        recyclerChatRooms.setLayoutManager(new LinearLayoutManager(getContext()));
-        chatRoomAdapter = new ChatRoomAdapter(new ArrayList<>(), requireContext());
-        recyclerChatRooms.setAdapter(chatRoomAdapter);
         textChatTitle = view.findViewById(R.id.text_chat_title);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
         db = FirebaseFirestore.getInstance();
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        recyclerChatRooms.setLayoutManager(new LinearLayoutManager(getContext()));
+        chatRoomAdapter = new ChatRoomAdapter(new ArrayList<>(), requireContext(), room -> {
+            ChatRoomBottomSheetFragment bottomSheet = new ChatRoomBottomSheetFragment(
+                    room.getId(),
+                    String.join(", ", room.getNicknames()),
+                    this::loadChatRooms
+            );
+            bottomSheet.show(getParentFragmentManager(), "ChatRoomBottomSheet");
+        });
+        recyclerChatRooms.setAdapter(chatRoomAdapter);
 
         Bundle args = getArguments();
         if (args != null && args.getBoolean("is_matched", false)) {
@@ -117,6 +130,7 @@ public class HomeFragment extends Fragment {
                 if (matchListener != null) matchListener.remove();
                 if (delayedMatchRunnable != null) matchDelayHandler.removeCallbacks(delayedMatchRunnable);
                 isMatched = false;
+                hasMatched = false;
                 currentPartyMembers.clear();
             }
         });
@@ -142,38 +156,47 @@ public class HomeFragment extends Fragment {
         db.collection("parties")
                 .whereArrayContains("members", currentUser.getEmail())
                 .addSnapshotListener((snapshot, e) -> {
-                    if (snapshot != null && !snapshot.isEmpty()) {
-                        List<ChatRoomInfo> roomInfoList = new ArrayList<>();
-                        for (DocumentSnapshot doc : snapshot.getDocuments()) {
-                            List<String> memberEmails = (List<String>) doc.get("members");
+                    if (snapshot == null || snapshot.isEmpty()) {
+                        chatRoomAdapter.setRooms(new ArrayList<>());
+                        return;
+                    }
 
-                            db.collection("users")
-                                    .whereIn(FieldPath.documentId(), memberEmails)
-                                    .get()
-                                    .addOnSuccessListener(userSnapshot -> {
-                                        List<String> nicknames = new ArrayList<>();
-                                        for (DocumentSnapshot userDoc : userSnapshot.getDocuments()) {
-                                            String nickname = userDoc.getString("nickname");
-                                            if (nickname != null) nicknames.add(nickname);
-                                        }
+                    List<ChatRoomInfo> roomInfoList = new ArrayList<>();
+                    List<DocumentSnapshot> partyDocs = snapshot.getDocuments();
+                    int total = partyDocs.size();
+                    AtomicInteger count = new AtomicInteger(0);
 
-                                        // 현재 유저 닉네임은 리스트 맨 앞으로
-                                        db.collection("users").document(currentUser.getEmail())
-                                                .get()
-                                                .addOnSuccessListener(currentUserDoc -> {
-                                                    String myNick = currentUserDoc.getString("nickname");
-                                                    if (myNick != null && nicknames.remove(myNick)) {
-                                                        nicknames.add(0, myNick); // 맨 앞에 넣기
-                                                    }
-                                                    roomInfoList.add(new ChatRoomInfo(doc.getId(), nicknames));
-                                                    chatRoomAdapter.setRooms(roomInfoList); // 어댑터 업데이트
-                                                });
-                                    });
-                        }
+                    for (DocumentSnapshot doc : partyDocs) {
+                        List<String> memberEmails = (List<String>) doc.get("members");
+
+                        db.collection("users")
+                                .whereIn(FieldPath.documentId(), memberEmails)
+                                .get()
+                                .addOnSuccessListener(userSnapshot -> {
+                                    List<String> nicknames = new ArrayList<>();
+                                    for (DocumentSnapshot userDoc : userSnapshot.getDocuments()) {
+                                        String nickname = userDoc.getString("nickname");
+                                        if (nickname != null) nicknames.add(nickname);
+                                    }
+
+                                    db.collection("users").document(currentUser.getEmail())
+                                            .get()
+                                            .addOnSuccessListener(currentUserDoc -> {
+                                                String myNick = currentUserDoc.getString("nickname");
+                                                if (myNick != null && nicknames.remove(myNick)) {
+                                                    nicknames.add(0, myNick);
+                                                }
+
+                                                roomInfoList.add(new ChatRoomInfo(doc.getId(), nicknames));
+
+                                                if (count.incrementAndGet() == total) {
+                                                    chatRoomAdapter.setRooms(roomInfoList);
+                                                }
+                                            });
+                                });
                     }
                 });
     }
-
 
     private void listenForMatching() {
         if (currentUser == null) return;
@@ -204,18 +227,21 @@ public class HomeFragment extends Fragment {
     }
 
     private void delayMatching(List<String> userIds, long delayMillis) {
+        if (hasMatched) return;
         if (delayedMatchRunnable != null) matchDelayHandler.removeCallbacks(delayedMatchRunnable);
         delayedMatchRunnable = () -> matchConfirmed(userIds);
         matchDelayHandler.postDelayed(delayedMatchRunnable, delayMillis);
     }
 
     private void runMatchingImmediately(List<String> userIds) {
+        if (hasMatched) return;
         if (delayedMatchRunnable != null) matchDelayHandler.removeCallbacks(delayedMatchRunnable);
         matchConfirmed(userIds);
     }
 
     private void matchConfirmed(List<String> matchedUserIds) {
-        if (!matchedUserIds.contains(currentUser.getEmail())) return;
+        if (hasMatched || !matchedUserIds.contains(currentUser.getEmail())) return;
+        hasMatched = true;
 
         Map<String, Object> party = new HashMap<>();
         party.put("origin", selectedOriginName);
@@ -309,6 +335,7 @@ public class HomeFragment extends Fragment {
                     layoutMatch.setVisibility(View.VISIBLE);
                     layoutWaiting.setVisibility(View.GONE);
                     isMatched = false;
+                    hasMatched = false;
                     currentPartyMembers.clear();
                     for (DocumentSnapshot doc : snapshot.getDocuments()) {
                         db.collection("users").document(doc.getId()).update("arrived", FieldValue.delete());
