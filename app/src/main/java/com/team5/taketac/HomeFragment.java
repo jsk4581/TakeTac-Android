@@ -246,26 +246,43 @@ public class HomeFragment extends Fragment {
     }
 
     private void matchConfirmed(List<String> matchedUserIds) {
-        if (hasMatched || !matchedUserIds.contains(currentUser.getEmail())) return;
-        hasMatched = true;
+        // ✅ 중복 방지용 정렬 및 대표 판단
+        Collections.sort(matchedUserIds);
+        if (!matchedUserIds.get(0).equals(currentUser.getEmail())) return;
 
-        Map<String, Object> party = new HashMap<>();
-        party.put("origin", selectedOriginName);
-        party.put("timestamp", FieldValue.serverTimestamp());
-        party.put("members", matchedUserIds);
-
+        // ✅ 중복 생성 방지 (이미 파티 생성된 경우 체크)
         db.collection("parties")
-                .add(party)
-                .addOnSuccessListener(docRef -> Log.d("HomeFragment", "파티 저장 완료: " + docRef.getId()));
+                .whereEqualTo("origin", selectedOriginName)
+                .whereEqualTo("members", matchedUserIds)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    if (!snapshot.isEmpty()) {
+                        Log.d("HomeFragment", "이미 생성된 파티 존재함");
+                        return;
+                    }
 
-        for (String uid : matchedUserIds) {
-            db.collection("match_requests").document(uid).delete();
-        }
+                    Map<String, Object> party = new HashMap<>();
+                    party.put("origin", selectedOriginName);
+                    party.put("timestamp", FieldValue.serverTimestamp());
+                    party.put("members", matchedUserIds);
 
-        if (matchListener != null) matchListener.remove();
-        isMatched = true;
-        currentPartyMembers = matchedUserIds;
+                    db.collection("parties")
+                            .add(party)
+                            .addOnSuccessListener(docRef -> Log.d("HomeFragment", "파티 저장 완료: " + docRef.getId()));
+
+                    for (String uid : matchedUserIds) {
+                        db.collection("match_requests").document(uid).delete();
+                    }
+
+                    if (matchListener != null) matchListener.remove();
+                    isMatched = true;
+                    currentPartyMembers = matchedUserIds;
+                    MatchState.isMatched = true;
+                    MatchState.origin = selectedOriginName;
+                    MatchState.partyMembers = new ArrayList<>(matchedUserIds);
+                });
     }
+
 
     private void showMapFragment(List<String> matchedUserIds) {
         LatLng originCoords = Constants.STATIONS.get(selectedOriginName);
