@@ -4,7 +4,6 @@ import static com.team5.taketac.BuildConfig.KAKAO_NATIVE_APP_KEY;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +12,6 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.kakao.sdk.common.util.Utility;
 import com.kakao.vectormap.KakaoMapSdk;
 
 public class MainActivity extends AppCompatActivity {
