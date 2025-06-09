@@ -153,7 +153,8 @@ public class ChatActivity extends AppCompatActivity {
         sendButton.setOnClickListener(v -> {
             String text = inputMessage.getText().toString().trim();
             if (!text.isEmpty()) {
-                Message message = new Message(text, true, myNickname);
+                String senderUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                Message message = new Message(text, senderUid, myNickname);
                 messagesRef.push().setValue(message)
                         .addOnSuccessListener(aVoid -> inputMessage.setText(""))
                         .addOnFailureListener(e -> {

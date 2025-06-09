@@ -63,8 +63,8 @@ public class LoginActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
 
-                            if (user != null && user.isEmailVerified()) {
-                                // 인증 완료된 경우에만 Firestore에 최초 회원 정보 저장
+//                            if (user != null && user.isEmailVerified()) {
+//                                // 인증 완료된 경우에만 Firestore에 최초 회원 정보 저장
                                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                                 db.collection("users").document(user.getUid()).get()
                                         .addOnSuccessListener(document -> {
@@ -79,11 +79,11 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(this, "로그인 성공!", Toast.LENGTH_SHORT).show();
                                 startActivity(new Intent(this,MainActivity.class));
                                 finish();
-
-                            } else {
-                                errorText.setText("이메일 인증 후 로그인할 수 있습니다.");
-                                mAuth.signOut();
-                            }
+//
+//                            } else {
+//                                errorText.setText("이메일 인증 후 로그인할 수 있습니다.");
+//                                mAuth.signOut();
+//                            }
                         } else {
                             errorText.setText("로그인 실패: " + task.getException().getMessage());
                         }
