@@ -42,5 +42,23 @@
             android:textSize="14sp"
             android:textColor="@android:color/black" />
 
+        <TextView
+            android:id="@+id/tvParticipants"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="참가자: 0명"
+            android:textSize="14sp"
+            android:textColor="@android:color/black" />
+
+        <TextView
+            android:id="@+id/tvCreatorUid"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="생성자: UID"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>

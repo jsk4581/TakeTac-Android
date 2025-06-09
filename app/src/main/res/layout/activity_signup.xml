@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:text="가입하기"
             android:layout_marginTop="24dp"
-            android:backgroundTint="#014F9e" />
+            android:backgroundTint="#014F9e"/>
     </LinearLayout>
 </ScrollView>
 

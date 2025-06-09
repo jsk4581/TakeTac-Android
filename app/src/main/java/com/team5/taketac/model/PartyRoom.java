@@ -1,5 +1,8 @@
 package com.team5.taketac.model;
 
+import java.util.Map;
+import java.util.UUID;
+
 public class PartyRoom {
     private String id;
     private String title;
@@ -7,16 +10,22 @@ public class PartyRoom {
     private long timestamp;
     private String creatorUid;
 
+    // 참가자 목록 (키: 참가자 UID, 값: 참가자 이름 등)
+    private Map<String, String> users;
+
     public PartyRoom() {
-        // 기본 생성자 (Firebase 용)
+        // Firebase 역직렬화용 기본 생성자
     }
 
-    public PartyRoom(String id, String title, String location, long timestamp, String creatorUid) {
-        this.id = id;
+    public PartyRoom(String title, String location, long timestamp, String creatorUid) {
+        this.id = UUID.randomUUID().toString();
         this.title = title;
         this.location = location;
         this.timestamp = timestamp;
         this.creatorUid = creatorUid;
+    }
+
+    public PartyRoom(String partyId, String title, String location, long timestamp, String uid) {
     }
 
     public String getId() {
@@ -58,4 +67,8 @@ public class PartyRoom {
     public void setCreatorUid(String creatorUid) {
         this.creatorUid = creatorUid;
     }
+
+    public Map<String, String> getUsers() { return users; }
+    public void setUsers(Map<String, String> users) { this.users = users; }
+
 }

@@ -77,60 +77,12 @@ public class PartyDetailBottomSheetFragment extends BottomSheetDialogFragment {
             btnDelete.setVisibility(View.VISIBLE);
             btnEdit.setVisibility(View.VISIBLE);
             btnJoin.setVisibility(View.GONE);
+            btnChat.setVisibility(View.VISIBLE);  // ✅ 방장도 채팅 가능
         } else {
             btnDelete.setVisibility(View.GONE);
             btnEdit.setVisibility(View.GONE);
             btnJoin.setVisibility(View.VISIBLE);
-        }
 
-        // ✅ 실시간 참여자 리스트 반영 (비동기 닉네임 완료 후 갱신)
-        List<String> nicknameList = new ArrayList<>();
-        ParticipantAdapter participantAdapter = new ParticipantAdapter(nicknameList);
-        rvParticipants.setAdapter(participantAdapter);
-        rvParticipants.setLayoutManager(new LinearLayoutManager(getContext()));
-
-        partyRef.child("participants").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                nicknameList.clear();
-
-                List<String> tempList = new ArrayList<>();
-                AtomicInteger loadedCount = new AtomicInteger(0);
-                int totalCount = (int) snapshot.getChildrenCount();
-
-                if (totalCount == 0) {
-                    participantAdapter.notifyDataSetChanged();
-                    return;
-                }
-
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    String uid = child.getKey();
-                    userRef.child(uid).child("nickname").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot nickSnap) {
-                            String nickname = nickSnap.getValue(String.class);
-                            if (nickname != null) {
-                                tempList.add(nickname);
-                            }
-                            if (loadedCount.incrementAndGet() == totalCount) {
-                                nicknameList.clear();
-                                nicknameList.addAll(tempList);
-                                participantAdapter.notifyDataSetChanged();
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {}
-                    });
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-
-        // 초기 참여 여부 UI
-        if (!isHost) {
             partyRef.child("participants").child(currentUserId)
                     .addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
@@ -196,6 +148,49 @@ public class PartyDetailBottomSheetFragment extends BottomSheetDialogFragment {
                         .format(new Date(newTimestamp)));
             });
             dialog.show(getParentFragmentManager(), "EditPartyDialog");
+        });
+
+        // ✅ 실시간 참여자 리스트
+        List<String> nicknameList = new ArrayList<>();
+        ParticipantAdapter participantAdapter = new ParticipantAdapter(nicknameList);
+        rvParticipants.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvParticipants.setAdapter(participantAdapter);
+
+        partyRef.child("participants").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                nicknameList.clear();
+                List<String> tempList = new ArrayList<>();
+                AtomicInteger loadedCount = new AtomicInteger(0);
+                int totalCount = (int) snapshot.getChildrenCount();
+
+                if (totalCount == 0) {
+                    participantAdapter.notifyDataSetChanged();
+                    return;
+                }
+
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String uid = child.getKey();
+                    userRef.child(uid).child("nickname").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot nickSnap) {
+                            String nickname = nickSnap.getValue(String.class);
+                            if (nickname != null) tempList.add(nickname);
+                            if (loadedCount.incrementAndGet() == totalCount) {
+                                nicknameList.clear();
+                                nicknameList.addAll(tempList);
+                                participantAdapter.notifyDataSetChanged();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {}
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 }

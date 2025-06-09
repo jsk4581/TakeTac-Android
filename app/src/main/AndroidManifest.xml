@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <!-- 인터넷 권한 -->
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.team5.taketac">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
 
     <application
@@ -34,20 +34,10 @@
             </intent-filter>
         </activity>
 
-        <!-- 로그인 Activity -->
         <activity
-            android:name=".LoginActivity"
-            android:exported="true" />
-
-        <activity android:name=".SignupActivity"/>
-        <activity android:name=".KakaoSearchActivity" />
-        <activity android:name=".CreatePublicPartyActivity" />
-        <activity android:name=".ChatActivity"/>
-
-
-        <!-- ❌ 아래 두 줄 삭제: Fragment는 등록하지 않음 -->
-        <!-- <activity android:name=".HomeFragment" /> -->
-        <!-- <activity android:name=".TimetableFragment" /> -->
+            android:name=".ChatActivity"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".CreatePublicPartyActivity" android:label="공개 파티 만들기" />
 
     </application>
 </manifest>
