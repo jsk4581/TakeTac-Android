@@ -4,6 +4,7 @@ import static com.team5.taketac.BuildConfig.KAKAO_NATIVE_APP_KEY;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.kakao.sdk.common.util.Utility;
 import com.kakao.vectormap.KakaoMapSdk;
 
 public class MainActivity extends AppCompatActivity {
@@ -21,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        String keyHash = Utility.INSTANCE.getKeyHash(this);
+        Log.d("KeyHash", keyHash);
 
         // ✅ 로그인 여부 확인
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();

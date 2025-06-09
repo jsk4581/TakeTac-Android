@@ -16,26 +16,31 @@ import androidx.core.view.WindowCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.team5.taketac.model.PartyRoom;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class CreatePublicPartyActivity extends AppCompatActivity {
 
     private TextInputEditText etTitle, etLocation;
     private TextView tvDate, tvTime;
     private Button btnCreate;
-
     private int selYear, selMonth, selDay, selHour, selMinute;
+    private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_public_party);
+
         WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
-        // 툴바 설정
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -46,23 +51,19 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
         tvTime = findViewById(R.id.tvTime);
         btnCreate = findViewById(R.id.btnCreate);
 
-        // 현재 날짜/시간 기본값
         Calendar now = Calendar.getInstance();
         selYear = now.get(Calendar.YEAR);
         selMonth = now.get(Calendar.MONTH);
         selDay = now.get(Calendar.DAY_OF_MONTH);
         selHour = now.get(Calendar.HOUR_OF_DAY);
         selMinute = now.get(Calendar.MINUTE);
-
         updateDateText();
         updateTimeText();
 
         tvDate.setOnClickListener(v -> new DatePickerDialog(
                 this,
-                (DatePicker view, int year, int month, int dayOfMonth) -> {
-                    selYear = year;
-                    selMonth = month;
-                    selDay = dayOfMonth;
+                (DatePicker view, int y, int m, int d) -> {
+                    selYear = y; selMonth = m; selDay = d;
                     updateDateText();
                 },
                 selYear, selMonth, selDay
@@ -70,13 +71,11 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
 
         tvTime.setOnClickListener(v -> new TimePickerDialog(
                 this,
-                (tp, hourOfDay, minute) -> {
-                    selHour = hourOfDay;
-                    selMinute = minute;
+                (tp, h, min) -> {
+                    selHour = h; selMinute = min;
                     updateTimeText();
                 },
-                selHour, selMinute,
-                true
+                selHour, selMinute, true
         ).show());
 
         btnCreate.setOnClickListener(v -> {
@@ -92,28 +91,36 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
             cal.set(selYear, selMonth, selDay, selHour, selMinute, 0);
             long timestamp = cal.getTimeInMillis();
 
-            String uid = FirebaseAuth.getInstance().getCurrentUser() != null
-                    ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                    : null;
-
+            String uid = FirebaseAuth.getInstance().getUid();
             if (uid == null) {
                 Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            PartyRoom party = new PartyRoom(title, location, timestamp, uid);
-            FirebaseDatabase.getInstance()
+            // Firestore 저장
+            Map<String, Object> data = new HashMap<>();
+            data.put("title", title);
+            data.put("location", location);
+            data.put("timestamp", timestamp);
+            data.put("ownerUid", uid);
+
+            db.collection("publicParties")
+                    .add(data)
+                    .addOnSuccessListener(ref -> Log.d("CreateParty", "Firestore 저장 완료"))
+                    .addOnFailureListener(e -> Log.e("CreateParty", "Firestore 저장 실패", e));
+
+            // Realtime Database 저장 (partyRooms + 방장 참여 등록)
+            String partyId = UUID.randomUUID().toString();
+            PartyRoom room = new PartyRoom(partyId, title, location, timestamp, uid);
+            DatabaseReference ref = FirebaseDatabase.getInstance()
                     .getReference("partyRooms")
-                    .child(party.getId())
-                    .setValue(party)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "생성 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                        Log.e("CreateParty", "파티 생성 실패", e);
-                    });
+                    .child(partyId);
+
+            ref.setValue(room);
+            ref.child("participants").child(uid).setValue(true); // ✅ 방장 자동 참여
+
+            Toast.makeText(this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
+            finish();
         });
     }
 

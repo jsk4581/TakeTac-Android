@@ -19,13 +19,50 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="장소"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tvPartyTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="시간"
         android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/tvParticipantsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="참여자"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvParticipants"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginBottom="12dp" />
+
+    <Button
+        android:id="@+id/btnChat"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="채팅하기"
+        android:visibility="gone"
+        android:layout_marginBottom="8dp" />
 
     <Button
         android:id="@+id/btnJoinParty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="참여하기" />
+
+    <Button
+        android:id="@+id/btnEditParty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="수정하기"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/btnDeleteParty"
