@@ -38,6 +38,8 @@
             android:name=".ChatActivity"
             android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".CreatePublicPartyActivity" android:label="공개 파티 만들기" />
+        <activity android:name=".LoginActivity" android:label="로그인하기" />
+
 
     </application>
 </manifest>
