@@ -276,8 +276,14 @@ public class ChatActivity extends AppCompatActivity {
                         JSONObject resultJson = new JSONObject(result);
                         String departureTime = resultJson.optString("출발시간");
                         String departurePlace = resultJson.optString("출발장소");
+                        String arrivalPlace = resultJson.optString("도착장소");
+                        String reason = resultJson.optString("판단근거");
 
-                        String formattedResult = "출발시간 : " + departureTime + "\n출발장소 : " + departurePlace;
+                        String formattedResult = "출발시간 : " + departureTime +
+                                "\n출발장소 : " + departurePlace +
+                                "\n도착장소 : " + arrivalPlace +
+                                "\n판단근거 : " + reason;
+
                         runOnUiThread(() -> showRecommendationDialog(formattedResult));
                     } catch (Exception e) {
                         String cleanedResult = result.replace("{", "").replace("}", "");
