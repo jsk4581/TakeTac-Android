@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
+
 import okhttp3.Callback;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -13,10 +15,15 @@ import okhttp3.RequestBody;
 public class AIHelper {
     public static void getRecommendedTime(String chatHistory, String timetableJson, Callback callback) {
         OkHttpClient client = new OkHttpClient();
+        long mNow;
+        mNow =  System.currentTimeMillis();
+        Date mDate;
+        mDate = new Date(mNow);
 
-        String prompt = "다음 채팅 내용과 시간표를 보고 가장 적절한 카풀 출발 시간을 추천해줘:\n\n" +
+        String prompt = "다음 채팅 내용과 시간표와 현재시간을 보고 가장 적절한 카풀 출발 시간을 추천해줘:\n\n" +
                 "채팅:\n" + chatHistory + "\n\n" +
-                "시간표:\n" + timetableJson;
+                "시간표:\n" + timetableJson + "\n\n" +
+                "현재시간:\n" + mDate;;
 
         MediaType JSON = MediaType.get("application/json; charset=utf-8");
         JSONObject json = new JSONObject();

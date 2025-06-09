@@ -40,20 +40,12 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
     private int selYear, selMonth, selDay, selHour, selMinute;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-    DatabaseReference userRef = FirebaseDatabase.getInstance()
-            .getReference("users")
-            .child(currentUser.getUid())
-            .child("nickname");
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_public_party);
-
         WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
-        // 툴바 설정
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -64,7 +56,6 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
         tvTime = findViewById(R.id.tvTime);
         btnCreate = findViewById(R.id.btnCreate);
 
-        // 현재 날짜/시간 기본값
         Calendar now = Calendar.getInstance();
         selYear = now.get(Calendar.YEAR);
         selMonth = now.get(Calendar.MONTH);
@@ -82,9 +73,7 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
                     selMonth = month;
                     selDay = dayOfMonth;
                     updateDateText();
-                },
-                selYear, selMonth, selDay
-        ).show());
+                }, selYear, selMonth, selDay).show());
 
         tvTime.setOnClickListener(v -> new TimePickerDialog(
                 this,
@@ -92,10 +81,7 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
                     selHour = hourOfDay;
                     selMinute = minute;
                     updateTimeText();
-                },
-                selHour, selMinute,
-                true
-        ).show());
+                }, selHour, selMinute, true).show());
 
         btnCreate.setOnClickListener(v -> {
             String title = etTitle.getText() != null ? etTitle.getText().toString().trim() : "";
@@ -110,55 +96,50 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
             cal.set(selYear, selMonth, selDay, selHour, selMinute, 0);
             long timestamp = cal.getTimeInMillis();
 
-            String uid = FirebaseAuth.getInstance().getCurrentUser() != null
-                    ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                    : null;
-
-            if (uid == null) {
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser == null) {
                 Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // 닉네임 먼저 불러온 후 PartyRoom 저장
-            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            String uid = currentUser.getUid();
+
+            DatabaseReference nicknameRef = FirebaseDatabase.getInstance()
+                    .getReference("users").child(uid).child("nickname");
+
+            nicknameRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     String nickname = snapshot.getValue(String.class);
-                    if (nickname == null) {
-                        nickname = "익명";
-                    }
-            // Firestore 저장
-            Map<String, Object> data = new HashMap<>();
-            data.put("title", title);
-            data.put("location", location);
-            data.put("timestamp", timestamp);
-            data.put("ownerUid", uid);
+                    if (nickname == null) nickname = "익명";
 
-                    // users 맵 만들기
+                    Map<String, Object> firestoreData = new HashMap<>();
+                    firestoreData.put("title", title);
+                    firestoreData.put("location", location);
+                    firestoreData.put("timestamp", timestamp);
+                    firestoreData.put("ownerUid", uid);
+                    db.collection("publicParties")
+                            .add(firestoreData)
+                            .addOnSuccessListener(ref -> Log.d("CreateParty", "Firestore 저장 완료"))
+                            .addOnFailureListener(e -> Log.e("CreateParty", "Firestore 저장 실패", e));
+
+                    // Firebase Realtime DB 저장
+                    String partyId = UUID.randomUUID().toString();
+                    PartyRoom party = new PartyRoom(title, location, timestamp, uid);
+                    party.setId(partyId);
+
                     Map<String, String> usersMap = new HashMap<>();
                     usersMap.put(uid, nickname);
-            db.collection("publicParties")
-                    .add(data)
-                    .addOnSuccessListener(ref -> Log.d("CreateParty", "Firestore 저장 완료"))
-                    .addOnFailureListener(e -> Log.e("CreateParty", "Firestore 저장 실패", e));
-
-                    // 파티룸 객체 만들기
-                    PartyRoom party = new PartyRoom(title, location, timestamp, uid);
                     party.setUsers(usersMap);
 
-                    // Firebase에 저장
-                    FirebaseDatabase.getInstance()
-                            .getReference("partyRooms")
-                            .child(party.getId())
-                            .setValue(party)
-                            .addOnSuccessListener(aVoid -> {
-                                Toast.makeText(CreatePublicPartyActivity.this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
-                                finish();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(CreatePublicPartyActivity.this, "생성 실패: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                                Log.e("CreateParty", "파티 생성 실패", e);
-                            });
+                    DatabaseReference partyRef = FirebaseDatabase.getInstance()
+                            .getReference("partyRooms").child(partyId);
+
+                    partyRef.setValue(party);
+                    partyRef.child("participants").child(uid).setValue(true);
+
+                    Toast.makeText(CreatePublicPartyActivity.this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
+                    finish();
                 }
 
                 @Override
@@ -166,18 +147,6 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
                     Toast.makeText(CreatePublicPartyActivity.this, "닉네임 불러오기 실패", Toast.LENGTH_SHORT).show();
                 }
             });
-            // Realtime Database 저장 (partyRooms + 방장 참여 등록)
-            String partyId = UUID.randomUUID().toString();
-            PartyRoom room = new PartyRoom(partyId, title, location, timestamp, uid);
-            DatabaseReference ref = FirebaseDatabase.getInstance()
-                    .getReference("partyRooms")
-                    .child(partyId);
-
-            ref.setValue(room);
-            ref.child("participants").child(uid).setValue(true); // ✅ 방장 자동 참여
-
-            Toast.makeText(this, "공개 파티 생성 완료", Toast.LENGTH_SHORT).show();
-            finish();
         });
     }
 
@@ -189,6 +158,3 @@ public class CreatePublicPartyActivity extends AppCompatActivity {
         tvTime.setText(String.format("%02d:%02d", selHour, selMinute));
     }
 }
-
-
-
