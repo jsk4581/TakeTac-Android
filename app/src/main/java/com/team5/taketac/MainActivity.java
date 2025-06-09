@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         // ✅ 로그인 여부 확인
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
