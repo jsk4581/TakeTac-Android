@@ -83,6 +83,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-messaging")
 
     // Kakao SDK
     implementation("com.kakao.maps.open:android:2.12.8")

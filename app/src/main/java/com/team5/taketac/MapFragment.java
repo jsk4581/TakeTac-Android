@@ -84,25 +84,6 @@ public class MapFragment extends Fragment {
         mapView = view.findViewById(R.id.map_view);
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
-        // 홈화면 이동 버튼 동작 연결
-        Button btnHome = view.findViewById(R.id.btn_homefragment);
-        btnHome.setOnClickListener(v -> {
-            // HomeFragment로 돌아갈 때 현재 매칭 상태를 전달
-            Fragment homeFragment = new HomeFragment();
-            Bundle bundle = new Bundle();
-            bundle.putBoolean("is_matched", isMatched); // <-- 현재 MapFragment의 isMatched 상태 전달
-            bundle.putString("selected_origin", destinationName); // 출발지 정보 유지
-            bundle.putStringArrayList("party_members", new ArrayList<>(matchedUserIds)); // 파티원 정보 유지
-            homeFragment.setArguments(bundle);
-
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, homeFragment)
-                    // addToBackStack을 사용하지 않아, 홈으로 돌아오면 MapFragment는 소멸됩니다.
-                    // 필요에 따라 addToBackStack(null)을 추가할 수 있습니다.
-                    .commit();
-        });
-
         // Kakao Directions API 준비
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.KAKAO_DIRECTIONS_BASE_URL)
@@ -447,14 +428,8 @@ public class MapFragment extends Fragment {
     // 카카오택시 앱 실행 로직을 별도 함수로 분리
     private void launchKakaoTaxiApp() {
         try {
-            Intent intent = requireActivity().getPackageManager().getLaunchIntentForPackage("com.kakao.t");
-            if (intent != null) {
-                startActivity(intent);
-            } else {
-                Toast.makeText(getContext(), "카카오택시 앱이 설치되어 있지 않습니다. Play 스토어로 이동합니다.", Toast.LENGTH_LONG).show();
-                Intent playStoreIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakao.taxi"));
-                startActivity(playStoreIntent);
-            }
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("kakaot://launch/taxi"));
+            startActivity(intent);
         } catch (Exception e) {
             Toast.makeText(getContext(), "카카오택시 앱 실행 중 오류가 발생했습니다. Play 스토어로 이동합니다.", Toast.LENGTH_LONG).show();
             Intent playStoreIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakao.taxi"));
