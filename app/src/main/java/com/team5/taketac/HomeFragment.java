@@ -24,7 +24,7 @@ import com.team5.taketac.model.ChatRoomInfo;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// ... 생략된 import는 이전 그대로 유지 ...
+
 
 public class HomeFragment extends Fragment {
 
@@ -50,7 +50,7 @@ public class HomeFragment extends Fragment {
     private Runnable delayedMatchRunnable;
 
     private boolean isMatched = false;
-    private boolean hasMatched = false; // ✅ 중복 실행 방지용
+    private boolean hasMatched = false;
     private List<String> currentPartyMembers = new ArrayList<>();
 
     @Nullable
@@ -84,11 +84,10 @@ public class HomeFragment extends Fragment {
         });
         recyclerChatRooms.setAdapter(chatRoomAdapter);
 
-        Bundle args = getArguments();
-        if (args != null && args.getBoolean("is_matched", false)) {
-            isMatched = true;
-            selectedOriginName = args.getString("selected_origin");
-            currentPartyMembers = args.getStringArrayList("party_members");
+        if (MatchState.isMatched || MatchState.isWaiting) {
+            isMatched = MatchState.isMatched;
+            selectedOriginName = MatchState.origin;
+            currentPartyMembers = new ArrayList<>(MatchState.partyMembers);
             layoutMatch.setVisibility(View.GONE);
             layoutWaiting.setVisibility(View.VISIBLE);
         } else {
@@ -118,6 +117,9 @@ public class HomeFragment extends Fragment {
                         Toast.makeText(getContext(), "매칭 요청됨", Toast.LENGTH_SHORT).show();
                         layoutMatch.setVisibility(View.GONE);
                         layoutWaiting.setVisibility(View.VISIBLE);
+                        MatchState.isWaiting = true;
+                        MatchState.origin = selectedOriginName;
+                        MatchState.partyMembers = new ArrayList<>(List.of(currentUser.getEmail()));
                         listenForMatching();
                     });
         });
@@ -132,6 +134,10 @@ public class HomeFragment extends Fragment {
                 isMatched = false;
                 hasMatched = false;
                 currentPartyMembers.clear();
+                MatchState.isMatched = false;
+                MatchState.isWaiting = false;
+                MatchState.origin = null;
+                MatchState.partyMembers.clear();
             }
         });
 
